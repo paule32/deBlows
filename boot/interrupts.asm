@@ -3,7 +3,18 @@
 ; and other system interface interrupts
 ; note: exception 15 and 20-31 are Intel Reserved
 
+%define i386
 %macro SAVE_REGS 0
+    %ifdef i386
+	push eax
+	push ebx
+	push ecx
+	push edx
+	push esi
+	push edi
+	push ebp
+	push esp
+    %else
 	push rax
 	push rbx
 	push rcx
@@ -20,7 +31,7 @@
 	push r13
 	push r14
 	push r15
-
+    %endif
 	push fs
 	push gs
 %endmacro
@@ -28,7 +39,16 @@
 %macro RESTORE_REGS 0
 	pop gs
 	pop fs
-
+    %ifdef i386
+	pop esp
+	pop ebp
+	pop edi
+	pop esi
+	pop edx
+	pop ecx
+	pop ebx
+	pop eax
+    %else
 	pop r15
 	pop r14
 	pop r13
@@ -45,12 +65,18 @@
 	pop rcx
 	pop rbx
 	pop rax
+    %endif
 %endmacro
 
 %macro REGS_CALLEE 1
 	mov eax, 0x10
+    %ifdef i386
+	mov edi, eax
+	mov esi, eax
+    %else
 	mov rdi, rax
 	mov rsi, rax
+    %endif
 	cld
 	call %1
 %endmacro

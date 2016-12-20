@@ -1,14 +1,16 @@
 	[bits 16]
 	[org 0x7c00]
 
+	jmp 0:boot		      ; jump over the data to our code
+
 ;---------------------------------------
 %macro PRINT 1
 	lea  si, [%1] 		; load source string
 	call print_str
+	lea  si, [crlf]
+	call print_str
 %endmacro
 ;--------------------------------------
-
-	jmp boot		      ; jump over the data to our code
 
 ;-----------------------Data-----------------------;
 ;------------GDT Table---------------;
@@ -107,19 +109,22 @@ int13_ext_check_failed:
 	PRINT message_no_int13_ext
 	jmp   boot_kernel
 
-error_read_sectors
+error_read_sectors:
 	PRINT message_sector_error
 	jmp boot_kernel
 
 message_loading_img:
-	db "Booting image ...", 0x0a, 0x0d
+	db "Booting image ...", 0
 message_halt:
-	db "Booting Halt!", 0x0a, 0x0d
+	db "Booting Halt!", 0
 message_sector_error:
-	db "sector read error.", 0x0a, 0x0d
+	db "sector read error.", 0
 
 message_no_int13_ext:
-	db "No INT13 extension available. Boot failed", 0x0a, 0x0d
+	db "No INT13 extension available. Boot failed", 0
+
+crlf:
+	db 0x0a, 0x0d, 0
 
 ;----------End Functions-------------;
 
@@ -134,7 +139,7 @@ boot_kernel:
 
 ;------------------------------------------------
 boot:
-;	mov [drive],dl		  ; save boot drive number(0x00=floppy 0x80=hard drive)
+	mov [drive],dl		  ; save boot drive number(0x00=floppy 0x80=hard drive)
 	mov ax, cs		 	  ; setup ds segment
 	mov ds, ax
 	mov es, ax
@@ -200,7 +205,6 @@ mov esp,0xffff
 jmp CODESEL:0x100000
 
 hlt
-
 
 
 TIMES 510-($-$$) DB 0
