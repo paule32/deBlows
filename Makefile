@@ -1,5 +1,5 @@
 TOOLS = ./tools
-CC32 = i686-elf-gcc -O2 -nostdinc -I./boot
+CC32 = i686-elf-gcc -O2 -nostdlib -nostdinc -ffreestanding -I./boot
 AS32 = i686-elf-as
 
 all: ./boot/bootmain.img ./boot/kernel.img
@@ -44,6 +44,15 @@ clean:
 ./boot/interrupts.o: ./boot/interrupts.asm
 	nasm -f elf32 -o ./boot/interrupts.o ./boot/interrupts.asm
 
+./boot/bioscall.o: ./boot/bioscall.S
+	$(AS32) -o ./boot/bioscall.o -c ./boot/bioscall.S
+
+./boot/pmJump.o: ./boot/pmJump.S
+	$(CC32) -o ./boot/pmJump.o -c ./boot/pmJump.S
+
+./boot/video.o: ./boot/video.c
+	$(CC32) -o ./boot/video.o -c ./boot/video.c
+
 ./boot/kernel.img: \
 	./boot/boot.o \
 	./boot/idt.o \
@@ -52,11 +61,12 @@ clean:
 	./boot/stdio.o \
 	./boot/kernel.o \
 	./boot/k_init.o \
-	./boot/interrupts.o ./boot/io.o
+	./boot/interrupts.o ./boot/io.o \
+	./boot/bioscall.o ./boot/video.o ./boot/pmJump.o
 	i686-elf-gcc -T ./boot/kernel.ld -o ./boot/kernel.img -ffreestanding -O2 -nostdlib -lgcc \
-	./boot/k_init.o ./boot/boot.o \
+	./boot/k_init.o ./boot/boot.o ./boot/bioscall.o ./boot/video.o \
 	./boot/kernel.o ./boot/idt.o ./boot/pic.o ./boot/panic.o \
-	./boot/stdio.o ./boot/interrupts.o ./boot/io.o
+	./boot/stdio.o ./boot/interrupts.o ./boot/io.o ./boot/pmJump.o
 	mkdir -p isodir/boot/grub
 	cp ./boot/kernel.img isodir/boot/kernel.img
 	cp grub.cfg isodir/boot/grub/grub.cfg

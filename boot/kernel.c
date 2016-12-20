@@ -18,55 +18,58 @@
 #include "descriptor.h"
 #include "interrupts.h"
 
+#define STACK_SIZE	512	/* Minimum number of bytes for stack */
+
+struct boot_params boot_params __attribute__((aligned(16)));
+
+char *HEAP = _end;
+char *heap_end = _end;		/* Default end of heap = no heap */
+
 
 /* this is what is called by our test int */
 void testint(void);
 
-BootMain() 
+void init_keyboard(void)
 {
-	/* This function turns off interrupts */
-	INTS(false);
-	/* clears the screen, duh! */
-	clear_screen();
+    struct biosregs ireg, oreg;
+    initregs(&ireg);
 
-	while(1);
+    ireg.ah = 0x02;	// get status
+    intcall(0x16, &ireg, &oreg);
+    boot_params.kbd_status = oreg.al;
+
+    ireg.ax = 0x0305;	// set keyboard repeat rate
+    intcall(0x16, &ireg, NULL);
+}
+
+void init_heap(void)
+{
+    char *stack_end;
+	if (boot_params.hdr.loadflags & CAN_USE_HEAP) {
+		asm("leal %P1(%%esp),%0"
+		    : "=r" (stack_end) : "i" (-STACK_SIZE));
+
+		heap_end = (char *)
+			((size_t)boot_params.hdr.heap_end_ptr + 0x200);
+		if (heap_end > stack_end)
+			heap_end = stack_end;
+	} else {
+		/* Boot protocol 2.00 only, no heap available */
+		puts("WARNING: Ancient bootloader, some functionality "
+		     "may be limited!\n");
+	}
+}
+
+BootMain()
+{
+    init_console();
+    init_heap();
+    init_keyboard();
 
 
-	/* Tell the user where we loaded to */
-	print("IDT kernel is currently loaded @ 1MB Physical.", 2);
-	
-	/* Remap PIC IRQs to cover software interrupts 0x20-0x30 */
-	remapPIC(0x20,0x28);
-	/* Mask the IRQs so they don't mess anything up */
-	maskIRQ(ALL);
-	/* Ok, we re-routed the IRQs */
-	print("8259 PIC Remapped.", 1);
+    puts("KALLUP.NET\nTEST");
 
-
-	/* Here we load the Exceptions that are called when certain faulty ocurr */
-	LoadExceptions();
-	/* Oh Ya! Just a few more steps and we can load our interrupt */
-	print("Exceptions Loaded.", 2);
-
-
-
-	/* Add our custom interrupt | We will load it as the 48th interrupt and point
-	 * to the int32() asm function in interrupts.asm */
-	AddInt(48, int32, 0);
-	/* Ya Baby! Now we just tell the PC where all the IDT data is and we can call
-	 * our custom interrupt */
-	print("3 Test Interrupts Loaded.", 3);
-
-	/* Point the IDT register to our IDT array */
-	loadIDTR();
-	/* We did it. Now to just call our interrupt */
-	print("IDT initialised.", 4);
-
-	/* We enable interrupts again so we can call our interrupt */
-	INTS(true);
-
-	/* Ok, moment of truth. Drum roll please! */
-	asm("int $48");
+	for (;;);
 
 	/* And that's the end of the IDT Kernel example code :) */
 	return;

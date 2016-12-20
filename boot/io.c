@@ -19,3 +19,7 @@ byte inportb(dword port)
 	__asm__ __volatile__ ("inb %w1,%b0" : "=a"(value) : "d"(port));
 	return value;
 }
+
+byte inb(dword port) { return inportb(port); }
+void outb(dword port, byte  value) { outportb(port, value); }
+void outw(dword port, dword value) { outportw(port, value); }

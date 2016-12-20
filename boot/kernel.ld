@@ -1,42 +1,55 @@
+/*
+ * setup.ld
+ *
+ * Linker script for the i386 setup code
+ */
+OUTPUT_FORMAT("elf32-i386", "elf32-i386", "elf32-i386")
+OUTPUT_ARCH(i386)
 ENTRY(_start)
 
-/* Tell where the various sections of the object files will be put in the final
-   kernel image. */
 SECTIONS
 {
-	/* Begin putting sections at 1 MiB, a conventional place for kernels to be
-	   loaded at by the bootloader. */
-	. = 1M;
+	. = 0;
+	.bstext		: { *(.bstext) }
+	.bsdata		: { *(.bsdata) }
 
-	/* First put the multiboot header, as it is required to be put very early
-	   early in the image or the bootloader won't recognize the file format.
-	   Next we'll put the .text section. */
-	.text BLOCK(4K) : ALIGN(4K)
-	{
-		*(.multiboot)
-		*(.text)
+	. = 495;
+	.header		: { *(.header) }
+	.entrytext	: { *(.entrytext) }
+	.inittext	: { *(.inittext) }
+	.initdata	: { *(.initdata) }
+	__end_init = .;
+
+	.text		: { *(.text) }
+	.text32		: { *(.text32) }
+
+	. = ALIGN(16);
+	.rodata		: { *(.rodata*) }
+
+	.videocards	: {
+		video_cards = .;
+		*(.videocards)
+		video_cards_end = .;
 	}
 
-	/* Read-only data. */
-	.rodata BLOCK(4K) : ALIGN(4K)
-	{
-		*(.rodata)
+	. = ALIGN(16);
+	.data		: { *(.data*) }
+
+	.signature	: {
+		setup_sig = .;
+		LONG(0x5a5aaa55)
 	}
 
-	/* Read-write data (initialized) */
-	.data BLOCK(4K) : ALIGN(4K)
-	{
-		*(.data)
-	}
 
-	/* Read-write data (uninitialized) and stack */
-	.bss BLOCK(4K) : ALIGN(4K)
+	. = ALIGN(16);
+	.bss		:
 	{
-		*(COMMON)
+		__bss_start = .;
 		*(.bss)
+		__bss_end = .;
 	}
+	. = ALIGN(16);
+	_end = .;
 
-	/* The compiler may produce other sections, by default it will put them in
-	   a segment with the same name. Simply add stuff here as needed. */
+	/DISCARD/ : { *(.note*) }
 }
-
