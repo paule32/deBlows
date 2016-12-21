@@ -8,6 +8,15 @@
  *
  * ----------------------------------------------------------------------- */
 
+#define _AC(X,Y)	X
+#define _AT(T,X)	X
+
+#define _BITUL(x)	(_AC(1,UL) << (x))
+#define _BITULL(x)	(_AC(1,ULL) << (x))
+
+#define X86_CR0_PE_BIT		0 /* Protection Enable */
+#define X86_CR0_PE		_BITUL(X86_CR0_PE_BIT)
+
 /*
  * The actual transition into protected mode
  */
@@ -18,7 +27,8 @@
 /*
  * void protected_mode_jump(u32 entrypoint, u32 bootparams);
  */
-GLOBAL(protected_mode_jump)
+.globl protected_mode_jump
+protected_mode_jump:
 	movl	%edx, %esi		# Pointer to boot_params table
 
 	xorl	%ebx, %ebx
@@ -28,8 +38,8 @@ GLOBAL(protected_mode_jump)
 	jmp	1f			# Short jump to serialize on 386/486
 1:
 
-	movw	$__BOOT_DS, %cx
-	movw	$__BOOT_TSS, %di
+	movw	$24, %cx
+	movw	$32, %di
 
 	movl	%cr0, %edx
 	orb	$X86_CR0_PE, %dl	# Protected mode
@@ -38,12 +48,14 @@ GLOBAL(protected_mode_jump)
 	# Transition to 32-bit mode
 	.byte	0x66, 0xea		# ljmpl opcode
 2:	.long	in_pm32			# offset
-	.word	__BOOT_CS		# segment
-ENDPROC(protected_mode_jump)
+	.word	16		# segment
+    ret
+
 
 	.code32
 	.section ".text32","ax"
-GLOBAL(in_pm32)
+.globl in_pm32
+in_pm32:
 	# Set up data segments for flat 32-bit mode
 	movl	%ecx, %ds
 	movl	%ecx, %es
@@ -69,5 +81,4 @@ GLOBAL(in_pm32)
 	lldt	%cx
 
 	jmpl	*%eax			# Jump to the 32-bit entrypoint
-ENDPROC(in_pm32)
-
+    ret

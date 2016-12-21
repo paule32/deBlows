@@ -10,10 +10,10 @@
 	push ebx
 	push ecx
 	push edx
-	push esi
-	push edi
-	push ebp
-	push esp
+;	push esi
+;	push edi
+;	push ebp
+;	push esp
     %else
 	push rax
 	push rbx
@@ -40,10 +40,10 @@
 	pop gs
 	pop fs
     %ifdef i386
-	pop esp
-	pop ebp
-	pop edi
-	pop esi
+;	pop esp
+;	pop ebp
+;	pop edi
+;	pop esi
 	pop edx
 	pop ecx
 	pop ebx
@@ -167,7 +167,7 @@ int10:
 	SAVE_REGS
 	REGS_CALLEE int_10   ; Test Interrupt Handler
 	RESTORE_REGS
-    iret
+	iret
 
 [extern int_11]
 [global int11]
@@ -202,6 +202,16 @@ int14:
     iret
 
 ;; Exception 15 is an Intel Reserved Interrupt
+
+[extern int_15]
+[global int15]
+int15:
+	SAVE_REGS
+	REGS_CALLEE int_15
+	RESTORE_REGS
+	iret
+
+;;------------
 
 [extern int_16]
 [global int16]

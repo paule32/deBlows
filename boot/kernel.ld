@@ -20,7 +20,12 @@ SECTIONS
 	.initdata	: { *(.initdata) }
 	__end_init = .;
 
-	.text		: { *(.text) }
+	.text :
+	{
+		*(.multiboot)
+		*(.text)
+	}
+
 	.text32		: { *(.text32) }
 
 	. = ALIGN(16);
@@ -42,8 +47,9 @@ SECTIONS
 
 
 	. = ALIGN(16);
-	.bss		:
+	.bss :
 	{
+		*(COMMON)
 		__bss_start = .;
 		*(.bss)
 		__bss_end = .;

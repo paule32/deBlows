@@ -21,6 +21,7 @@ void int_11(void);
 void int_12(void);
 void int_13(void);
 void int_14(void);
+void int_15(void);
 void int_16(void);
 void int_17(void);
 void int_18(void);

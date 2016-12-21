@@ -9,70 +9,61 @@ void LoadExceptions()
 	/*
 	 * Add all Exception Interrupts
 	 */
-	AddInt(0, int00, 0);
-    AddInt(1, int01, 0);
-    AddInt(2, int02, 0);
-    AddInt(3, int03, 0);
-    AddInt(4, int04, 0);
-    AddInt(5, int05, 0);
-    AddInt(6, int06, 0);
-    AddInt(7, int07, 0);
-    AddInt(8, int08, 0);
-    AddInt(9, int09, 0);
-    AddInt(10, int10, 0);
-    AddInt(11, int11, 0);
-    AddInt(12, int12, 0);
-    AddInt(13, int13, 0);
-    AddInt(14, int14, 0);
-    AddInt(16, int16, 0);
-    AddInt(17, int17, 0);
-    AddInt(18, int18, 0);
-    AddInt(19, int19, 0);
-	AddInt(20, 0, 0);
-	AddInt(21, 0, 0);
-	AddInt(22, 0, 0);
-	AddInt(23, 0, 0);
-	AddInt(24, 0, 0);
-	AddInt(25, 0, 0);
-	AddInt(26, 0, 0);
-	AddInt(27, 0, 0);
-	AddInt(28, 0, 0);
-	AddInt(29, 0, 0);
-	AddInt(30, 0, 0);
-	AddInt(31, 0, 0);
+    AddInt(0x00, int00, 0);
+    AddInt(0x01, int01, 0);
+    AddInt(0x02, int02, 0);
+    AddInt(0x03, int03, 0);
+    AddInt(0x04, int04, 0);
+    AddInt(0x05, int05, 0);
+    AddInt(0x06, int06, 0);
+    AddInt(0x07, int07, 0);
+    AddInt(0x08, int08, 0);
+    AddInt(0x09, int09, 0);
+    AddInt(0x0a, int10, 0);
+    AddInt(0x0b, int11, 0);
+    AddInt(0x0c, int12, 0);
+    AddInt(0x0d, int13, 0);
+    AddInt(0x0e, int14, 0);
+    AddInt(0x0f, int15, 0);
+
+    AddInt(0x10, int16, 0);	// video interrupt !
+
+    AddInt(0x11, int17, 0);
+    AddInt(0x12, int18, 0);
+    AddInt(0x13, int19, 0);
+    AddInt(0x14, 0, 0);
+    AddInt(0x15, 0, 0);
+
+    AddInt(0x16, 0, 0);	// keyboard interrupt !
+
+    AddInt(0x17, 0, 0);
+    AddInt(0x18, 0, 0);
+    AddInt(0x19, 0, 0);
+    AddInt(0x1a, 0, 0);
+    AddInt(0x1b, 0, 0);
+    AddInt(0x1c, 0, 0);
+    AddInt(0x1d, 0, 0);
+    AddInt(0x1e, 0, 0);
+    AddInt(0x1f, 0, 0);
+    AddInt(0x20, 0, 0);
+    AddInt(0x21, 0, 0);
 }
 
 void panic(char *message, char *code, bool halt)
 {
 
-     clear_screen();
+//     clear_screen();
 
-     print("<SYSTEM ERROR>\n",0);
+	print("<SYSTEM ERROR>:",8);
+	print(message,9);
 
-     if(halt==true)
-     {
-          print("A Fatal ",2);
-     }
-	 if(halt==false)
-	 {
-		 print("A Non Fatal ",2);
-	 }
-
-     print("Exception Has Occured(your system has messed up)",5);
-
-
-
-     if(halt==true)
-     {
-          print("\n\n\n\n\n\n\t\t\t\t\t>>SYSTEM HALTED<<",15);
-		  asm("cli\n");
-		  asm("hlt\n"); //stop pc
-     } 
-	 else if(halt==false)
-	 {
-          print("\n\n\n\n\n\t\t\t\t\t<Press Any Key To Continue>",15);
-	 }
-	 outportb(MASTER, EOI); //send PIC EOI command
+	if(halt == false)
+	{
+		print("A Fatal!!!",10);
+		__asm__(
+		"cli\n"
+		"hlt\n");
+	}
 }
 
 /*
@@ -153,9 +144,17 @@ void int_14(void)
 	panic("Page Fault","#PF", false);
 }
 
+void int_15(void)
+{
+	panic("reserved INT - not implemented!","#ND", false);
+}
+
 void int_16(void)
 {
-	panic("FPU Floating-Point Error","#MF", false);
+	vga_test();
+	print("inter 0x10 called",10);
+
+	//panic("FPU Floating-Point Error","#MF", false);
 }
 
 void int_17(void)

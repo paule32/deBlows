@@ -18,12 +18,12 @@ void loadIDTR()
 
 void AddInt(int number, void (*handler)(), dword dpl)
 {
-	 word selector = 0x08;
-	 word settings;
+	word selector = 0x08;
+	word settings;
 
 	dword offset = (dword)handler;
 
-	 /* get CS selector */
+	/* get CS selector */
 	asm volatile("movw %%cs,%0" :"=g"(selector));
 
 	 /* set settings options depending on dpl */
