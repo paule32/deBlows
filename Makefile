@@ -1,6 +1,7 @@
 TOOLS = ./tools
 CC32 = i686-elf-gcc -O2 -nostdlib -nostdinc -ffreestanding -I./boot
 AS32 = i686-elf-as
+NASM = nasm -f elf32
 
 all: ./boot/kernel.img
 
@@ -11,10 +12,11 @@ clean:
 	rm -rf bootcd.iso
 
 ./boot/k_init.o: ./boot/k_init.S
-	$(AS32) -o ./boot/k_init.o ./boot/k_init.S
+	$(AS32)  -o ./boot/k_init.o  ./boot/k_init.S
+	$(NASM)  -o ./boot/k_video.o ./boot/k_video.S
 
 ./boot/kernel.o: ./boot/kernel.c
-	$(CC32) -o ./boot/kernel.o -c ./boot/kernel.c
+	$(CC32) -masm=intel -o ./boot/kernel.o -c ./boot/kernel.c
 
 ./boot/panic.o: ./boot/panic.c
 	$(CC32) -o ./boot/panic.o -c ./boot/panic.c
@@ -52,8 +54,8 @@ clean:
 	./boot/k_init.o  \
 	./boot/interrupts.o ./boot/io.o \
 	./boot/video.o ./boot/vga.o
-	i686-elf-gcc -T ./boot/kernel.ld -o ./boot/kernel.img -ffreestanding -O2 -nostdlib  \
-	./boot/k_init.o ./boot/video.o -lgcc \
+	$(CC32) -n -T ./boot/kernel.ld -o ./boot/kernel.img \
+	./boot/k_init.o ./boot/k_video.o ./boot/video.o \
 	./boot/kernel.o ./boot/idt.o ./boot/pic.o ./boot/panic.o \
 	./boot/stdio.o ./boot/interrupts.o ./boot/io.o \
 	./boot/vga.o

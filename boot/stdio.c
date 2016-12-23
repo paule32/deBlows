@@ -49,7 +49,7 @@ void *__memcpy(void *to, const void *from, size_t n)
 	return to;
 }
 
-void *memset(void *s, int c, size_t n)
+void *memset(void *s, int c, int n)
 {
 	int i;
 	char *ss = s;
