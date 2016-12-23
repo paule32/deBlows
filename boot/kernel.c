@@ -75,7 +75,7 @@ void plot(uint16_t x, uint16_t y, uint16_t color)
     if (y > (90*3)) { SetVideoBank(bank+3); } else
 	if (y > (90*4)) { SetVideoBank(bank+4); }
 	else {
-		SetVideoBank(bank);
+		SetVideoBank(bank); // kreis 0
 		real = offset;
 	}
 
