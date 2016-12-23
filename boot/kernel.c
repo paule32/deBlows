@@ -70,12 +70,9 @@ void plot(uint16_t x, uint16_t y, uint16_t color)
 	unsigned int bank   = 0;
 	unsigned int real   = offset - 0xffff;
 
-    if (y > (90*1)) { SetVideoBank(bank+1); } else
-	if (y > (90*2)) { SetVideoBank(bank+2); } else
-    if (y > (90*3)) { SetVideoBank(bank+3); } else
-	if (y > (90*4)) { SetVideoBank(bank+4); }
+    if (offset > real) { SetVideoBank(bank+1); }
 	else {
-		SetVideoBank(bank); // kreis 0
+		SetVideoBank(bank);
 		real = offset;
 	}
 
@@ -178,7 +175,7 @@ VbeWrite(5,1);memset(fb,1,64);
 VbeWrite(5,0);
 circle(30,30,30,14);
 plot(30,30,15);
-circle(30,30+30+30+30+30,30,15);
+circle(30,30+30+30+30,30,15);
 
 	return;
 }
