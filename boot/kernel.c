@@ -64,19 +64,181 @@ void plot_fast(int x,int y,byte color)
 
 void plot(uint16_t x, uint16_t y, uint16_t color)
 {
-    unsigned char* fb   = (unsigned char*) 0xa0000;
-	unsigned int offset = y * 800 + x;
-	unsigned int gap    = 64;
-	unsigned int bank   = 0;
-	unsigned int real   = offset - 0xffff;
+    unsigned char* fb   = (unsigned char*) 0xa0000;	static
+	unsigned int old_bank  = 0;
+	unsigned int bank_size = 0xffff+1;
+	unsigned int pixel  = y * 800 + x;
+	unsigned int bank   = pixel / bank_size ;
+	unsigned int offset = pixel - bank * bank_size;
 
-    if (offset > real) { SetVideoBank(bank+1); }
-	else {
+	if (bank != old_bank) {
+		old_bank  = bank;
 		SetVideoBank(bank);
-		real = offset;
 	}
 
-    fb[real] = color;
+    fb[offset] = color;
+}
+
+int getpixel(uint16_t x, uint16_t y)
+{
+	unsigned char* fb   = (unsigned char*) 0xa0000; static
+	unsigned int old_bank = 0;
+	unsigned int pixel  = y * 800 + x;
+	unsigned int bank_size = 0xffff+1;
+	unsigned int bank   = pixel / bank_size ;
+	unsigned int offset = pixel - bank * bank_size;
+
+
+	if (bank != old_bank) {
+		old_bank  = bank;
+		SetVideoBank(bank);
+	}
+	
+	return fb[pixel];
+}
+
+int abs(int j)
+{
+	return (j < 0 ? -j : j);
+}
+
+double powerOfTen(int num)
+{
+   double rst = 1.0;
+   int i;
+   if(num >= 0){
+       for(i = 0; i < num ; i++){
+           rst *= 10.0;
+       }
+   } else {
+	   int a = 0-num;
+		int i;
+       for(i = 0; i < a; i++){
+           rst *= 0.1;
+       }
+   }
+   return rst;
+}
+double sqrt(double a)
+{
+   /*
+         find more detail of this method on wiki methods_of_computing_square_roots
+         *** Babylonian method cannot get exact zero but approximately value of the square_root
+   */
+   double z = a; 
+   double rst = 0.0;
+   int max = 8;     // to define maximum digit 
+   int i;
+   double j = 1.0;
+   for(i = max ; i > 0 ; i--){
+       // value must be bigger then 0
+       if(z - (( 2 * rst ) + ( j * powerOfTen(i)))*( j * powerOfTen(i)) >= 0)
+       {
+           while( z - (( 2 * rst ) + ( j * powerOfTen(i)))*( j * powerOfTen(i)) >= 0)
+           {
+               j++;
+               if(j >= 10) break;
+           }
+           j--; //correct the extra value by minus one to j
+           z -= (( 2 * rst ) + ( j * powerOfTen(i)))*( j * powerOfTen(i)); //find value of z
+
+           rst += j * powerOfTen(i);     // find sum of a
+           j = 1.0;
+       }
+  }
+  for(i = 0 ; i >= 0 - max ; i--)
+  {
+      if(z - (( 2 * rst ) + ( j * powerOfTen(i)))*( j * powerOfTen(i)) >= 0)
+      {
+           while( z - (( 2 * rst ) + ( j * powerOfTen(i)))*( j * powerOfTen(i)) >= 0)
+           {
+               j++;
+           }
+           j--;
+           z -= (( 2 * rst ) + ( j * powerOfTen(i)))*( j * powerOfTen(i)); //find value of z
+          rst += j * powerOfTen(i);     // find sum of a
+          j = 1.0;
+      }
+  }
+  return rst;
+}
+
+
+
+void drawline(int x0, int y0, int x1, int y1, int colr)
+{
+	int dx = abs(x1-x0), sx = x0<x1 ? 1 : -1;
+	int dy = abs(y1-y0), sy = y0<y1 ? 1 : -1; 
+	int err = (dx>dy ? dx : -dy)/2, e2;
+ 
+	for(;;) {
+   		plot(x0,y0,colr);
+    	if (x0 == x1 && y0 == y1) break;
+    	e2 = err;
+    	if (e2 >-dx) { err -= dy; x0 += sx; }
+    	if (e2 < dy) { err += dx; y0 += sy; }
+	}
+}
+
+void fillcircle(int x, int y, int r, int colr)
+{
+	int ox = x;
+	int oy = y;
+
+	for(y = -r; y <= r; y++)
+    for(x = -r; x <= r; x++)
+    if(x*x+y*y <= r*r)
+    plot(ox+x,oy+y,colr);
+}
+
+void drawrect(int left,int top, int right, int bottom, byte color)
+{
+    drawline(left,top,right,top,color);
+    drawline(left,top,left,bottom,color);
+    drawline(right,top,right,bottom,color);
+    drawline(left,bottom,right,bottom,color);
+}
+
+
+void fillrect(const int x1,const int y1,const int x2,const int y2, int colr)
+{
+    int y_min = ( (y1 >= y2) ? y2 : y1);
+    int y_max = ( (y1 <= y2) ? y2 : y1);
+
+	int count;
+    for(count = y_min;count <= y_max;count++)
+	drawline(x1,count,x2,count,colr);
+}
+
+
+void drawcircle(int x0, int y0, int radius, int colr)
+{
+    int x = radius;
+    int y = 0;
+    int err = 0;
+
+    while (x >= y)
+    {
+        plot(x0 + x, y0 + y, colr);
+        plot(x0 + y, y0 + x, colr);
+        plot(x0 - y, y0 + x, colr);
+        plot(x0 - x, y0 + y, colr);
+        plot(x0 - x, y0 - y, colr);
+        plot(x0 - y, y0 - x, colr);
+        plot(x0 + y, y0 - x, colr);
+        plot(x0 + x, y0 - y, colr);
+
+        if (err <= 0)
+        {
+            y += 1;
+            err += 2*y + 1;
+        }
+        if (err > 0)
+        {
+            x -= 1;
+            err -= 2*x + 1;
+        }
+    }
 }
 
 void
@@ -173,10 +335,11 @@ SetVideoMode(800,600,8);
 VbeWrite(5,0);memset(fb,1,0xffff);
 VbeWrite(5,1);memset(fb,1,64);
 VbeWrite(5,0);
-circle(30,30,30,14);
+drawcircle(30,30,30,14);
 plot(30,30,15);
-circle(30,30+30+30+30,30,15);
-
+fillcircle(230,340,30,15);
+drawrect(100,150,130,140,14);
+fillrect(100,150,230,240,14);
 	return;
 }
 
