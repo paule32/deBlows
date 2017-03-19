@@ -33,8 +33,8 @@ void VbeWrite (uint16_t index, uint16_t value) {
    outw(VBE_DISPI_IOPORT_DATA, value);
 }
 
-void SetVideoMode (int xres, int yres, uint16_t bpp) {
-
+void SetVideoMode (int xres, int yres, uint16_t bpp)
+{
    VbeWrite (VBE_DISPI_INDEX_ENABLE, VBE_DISPI_DISABLED);
    VbeWrite (VBE_DISPI_INDEX_XRES, xres);
    VbeWrite (VBE_DISPI_INDEX_YRES, yres);
@@ -49,10 +49,6 @@ typedef struct __attribute__ ((packed)) {
     unsigned short gs, fs, es, ds, eflags;
 } regs16_t;
  
-// tell compiler our int32 function is external
-extern void pm_int32(unsigned char intnum, regs16_t *regs);
-
-void testint(void);
 
 char *VGA = (char *)0xA0000;
 
@@ -60,7 +56,6 @@ void plot_fast(int x,int y,byte color)
 {
   VGA[y*320+x]=color;
 }
-
 
 void plot(uint16_t x, uint16_t y, uint16_t color)
 {
@@ -205,9 +200,37 @@ void fillrect(const int x1,const int y1,const int x2,const int y2, int colr)
     int y_min = ( (y1 >= y2) ? y2 : y1);
     int y_max = ( (y1 <= y2) ? y2 : y1);
 
-	int count;
-    for(count = y_min;count <= y_max;count++)
-	drawline(x1,count,x2,count,colr);
+    int x_min = ( (x1 >= x2) ? x2 : x1);
+    int x_max = ( (x1 <= x2) ? x2 : x1);
+
+	int farbe;
+	int xc,yc;
+	
+	/*
+	RGB(1,0,0) = RGB(255,   0,   0) = R
+	RGB(1,1,0) = RGB(255, 255,   0) = G
+	RGB(0,0,1) = RGB(0  ,   0, 255) = B
+	
+	1.0 = 255
+	---------  x = ((0.5 * 255) / 1) = 128  R = 128
+	0.5 = x
+	*/
+
+    int R  = 0;
+    int G  = 0;
+    int B  = 255;
+    
+    int a  = 0.5;
+    int aw = B * a;
+    
+    B = aw; if (B >= 127) { B = (((64 * B)-1) / B); } else B = 15;
+	
+    for (yc = y_min; yc <= y_max; yc++) {
+        for (xc = x_min; xc <= x_max; xc++) {
+
+            plot(xc+x1,yc+y1,B);
+        }
+	}
 }
 
 
@@ -240,6 +263,34 @@ void drawcircle(int x0, int y0, int radius, int colr)
         }
     }
 }
+
+void triangle(const int x1, const int y1,
+			  const int x2, const int y2,
+		      const int x3, const int y3, int colr)
+{
+    drawline(x1,y1,x2,y2,colr);
+    drawline(x2,y2,x3,y3,colr);
+    drawline(x3,y3,x1,y1,colr);
+}
+
+/*
+void fillScan(const int scan,const struct Edge active,const int fill_color)
+{
+    const struct Edge p1;
+    const struct Edge p2;
+
+      p1 = active.next;
+
+      while(p1)
+	  {
+	     p2=p1.next;
+
+	     for(int count=p1.xIntersect;count<=p2.xIntersect;count++)
+		 plot(count,scan,fill_color);
+
+	     p1=p2.next;
+	  }
+}*/
 
 void
 circle(
@@ -296,31 +347,6 @@ circle(
 void
 BootMain()
 {
-	/* This function turns off interrupts */
-	INTS(false);
-
-	/* clears the screen, duh! */
-	clear_screen();
-
-	/* Tell the user where we loaded to */
-	print("IDT kernel is currently loaded @ 1MB Physical.", 0);
-
-	/* Remap PIC IRQs to cover software interrupts 0x20-0x30 */
-	remapPIC(0x20,0x28);
-	maskIRQ(ALL);
-	print("8259 PIC Remapped.", 1);
-
-
-	/* Here we load the Exceptions that are called when certain faulty ocurr */
-	LoadExceptions();
-	print("Exceptions Loaded.", 2);
-
-
-	/* Point the IDT register to our IDT array */
-	loadIDTR();
-	/* We did it. Now to just call our interrupt */
-	print("IDT initialised.", 4);
-
 
 unsigned char* fb   = (unsigned char*) 0xa0000;
 /*VbeWrite(5,0);memset(fb,1,0xffff);
@@ -339,7 +365,10 @@ drawcircle(30,30,30,14);
 plot(30,30,15);
 fillcircle(230,340,30,15);
 drawrect(100,150,130,140,14);
-fillrect(100,150,230,240,14);
+
+fillrect(100,90,230,240,14);
+triangle(300,100,360,200,200,100,1);
+
 	return;
 }
 

@@ -1,6 +1,6 @@
 TOOLS = ./tools
-CC32 = i686-elf-gcc -O2 -nostdlib -nostdinc -ffreestanding -I./boot
-AS32 = i686-elf-as
+CC32 = gcc -m32 -O2 -std=gnu99 -nostdlib -nostdinc -ffreestanding -I./boot
+AS32 = gcc -m32 -c
 NASM = nasm -f elf32
 
 all: ./boot/kernel.img
@@ -63,4 +63,3 @@ clean:
 	cp ./boot/kernel.img isodir/boot/kernel.img
 	cp grub.cfg isodir/boot/grub/grub.cfg
 	grub-mkrescue -o bootcd.iso isodir
-
