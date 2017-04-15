@@ -27,13 +27,13 @@
 #define VBE_DISPI_LFB_ENABLED           0x40
 #define VBE_DISPI_NOCLEARMEM            0x80
 
-void VbeWrite (uint16_t index, uint16_t value) {
+void VbeWrite (uint32_t index, uint32_t value) {
 
    outw(VBE_DISPI_IOPORT_INDEX, index);
    outw(VBE_DISPI_IOPORT_DATA, value);
 }
 
-void SetVideoMode (int xres, int yres, uint16_t bpp)
+void SetVideoMode (int xres, int yres, uint32_t bpp)
 {
    VbeWrite (VBE_DISPI_INDEX_ENABLE, VBE_DISPI_DISABLED);
    VbeWrite (VBE_DISPI_INDEX_XRES, xres);
@@ -57,7 +57,7 @@ void plot_fast(int x,int y,byte color)
   VGA[y*320+x]=color;
 }
 
-void plot(uint16_t x, uint16_t y, uint16_t color)
+void plot(uint32_t x, uint32_t y, uint32_t color)
 {
     unsigned char* fb   = (unsigned char*) 0xa0000;	static
 	unsigned int old_bank  = 0;
@@ -74,9 +74,9 @@ void plot(uint16_t x, uint16_t y, uint16_t color)
     fb[offset] = color;
 }
 
-void setpixel(uint16_t x, uint16_t y, uint16_t color) { plot(x,y,color); }
+void setpixel(uint32_t x, uint32_t y, uint32_t color) { plot(x,y,color); }
 
-int getpixel(uint16_t x, uint16_t y)
+int getpixel(uint32_t x, uint32_t y)
 {
 	unsigned char* fb   = (unsigned char*) 0xa0000; static
 	unsigned int old_bank = 0;
@@ -344,8 +344,8 @@ circle(
 }
 
 
-extern uint16_t setColor(uint8_t r, uint8_t g, uint8_t b);
-extern void cc_test(uint16_t xpos, uint16_t ypos, uint16_t sx, uint16_t sy, uint16_t color, float alpha);
+extern uint16_t setColor(uint32_t r, uint32_t g, uint32_t b);
+extern void cc_test(uint32_t xpos, uint32_t ypos, uint32_t sx, uint32_t sy, uint32_t color, float alpha);
 void
 BootMain()
 {

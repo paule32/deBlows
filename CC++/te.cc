@@ -1,12 +1,12 @@
 #include "../boot/stdio.h"
 
 typedef union {
-    uint16_t cv;
+    uint32_t cv;
     struct {
         uint8_t r: 5;
         uint8_t g: 6;
         uint8_t b: 5;
-    } __attribute__((packed));
+    } ; //__attribute__((packed));
 } color;
  
 color
@@ -26,7 +26,7 @@ blend(color a, color b, float alpha) {
     return rv;
 }
 
-extern "C" uint16_t setColor(uint8_t r, uint8_t g, uint8_t b)
+extern "C" uint32_t setColor(uint8_t r, uint8_t g, uint8_t b)
 {
     color currentColor;
     
@@ -37,10 +37,10 @@ extern "C" uint16_t setColor(uint8_t r, uint8_t g, uint8_t b)
     return currentColor.cv;
 }
 
-extern "C" int  getpixel(uint16_t x, uint16_t y);
-extern "C" void setpixel(uint16_t x, uint16_t y, uint16_t c);
+extern "C" int  getpixel(uint32_t x, uint32_t y);
+extern "C" void setpixel(uint32_t x, uint32_t y, uint32_t c);
 
-extern "C" void cc_test(uint16_t xpos, uint16_t ypos, uint16_t sx, uint16_t sy, uint16_t col, float alpha)
+extern "C" void cc_test(uint32_t xpos, uint32_t ypos, uint32_t sx, uint32_t sy, uint32_t col, float alpha)
 {
     color c,a,n;
     
