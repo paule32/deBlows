@@ -1,7 +1,9 @@
 TOOLS = ./tools
-CC32 = gcc -m32 -O2 -std=gnu99 -nostdlib -nostdinc -ffreestanding -I./boot
-AS32 = gcc -m32 -c
-NASM = nasm -f elf32
+CC32  = gcc -m32 -O2 -std=gnu99 -nostdlib -nostdinc -ffreestanding -I./boot
+CPP32 = g++ -m32 -O2 -std=c++11 -nostdinc -ffreestanding -I../boot
+
+AS32  = gcc -m32 -c
+NASM  = nasm -f elf32
 
 all: ./boot/kernel.img
 
@@ -45,20 +47,23 @@ clean:
 ./boot/vga.o: ./boot/vga.asm
 	nasm -t -f elf32 -o ./boot/vga.o ./boot/vga.asm
 
+./CC++/te.o: ./CC++/te.cc
+	$(CPP32) -o ./CC++/te.o -c ./CC++/te.cc
+
 ./boot/kernel.img: \
 	./boot/idt.o \
 	./boot/pic.o \
 	./boot/panic.o \
 	./boot/stdio.o \
 	./boot/kernel.o \
-	./boot/k_init.o  \
+	./boot/k_init.o ./CC++/te.o \
 	./boot/interrupts.o ./boot/io.o \
 	./boot/video.o ./boot/vga.o
 	$(CC32) -n -T ./boot/kernel.ld -o ./boot/kernel.img \
 	./boot/k_init.o ./boot/k_video.o ./boot/video.o \
 	./boot/kernel.o ./boot/idt.o ./boot/pic.o ./boot/panic.o \
 	./boot/stdio.o ./boot/interrupts.o ./boot/io.o \
-	./boot/vga.o
+	./boot/vga.o ./CC++/te.o
 	mkdir -p isodir/boot/grub
 	cp ./boot/kernel.img isodir/boot/kernel.img
 	cp grub.cfg isodir/boot/grub/grub.cfg

@@ -74,6 +74,8 @@ void plot(uint16_t x, uint16_t y, uint16_t color)
     fb[offset] = color;
 }
 
+void setpixel(uint16_t x, uint16_t y, uint16_t color) { plot(x,y,color); }
+
 int getpixel(uint16_t x, uint16_t y)
 {
 	unsigned char* fb   = (unsigned char*) 0xa0000; static
@@ -342,8 +344,8 @@ circle(
 }
 
 
-
-
+extern uint16_t setColor(uint8_t r, uint8_t g, uint8_t b);
+extern void cc_test(uint16_t xpos, uint16_t ypos, uint16_t sx, uint16_t sy, uint16_t color, float alpha);
 void
 BootMain()
 {
@@ -368,6 +370,9 @@ drawrect(100,150,130,140,14);
 
 fillrect(100,90,230,240,14);
 triangle(300,100,360,200,200,100,1);
+
+
+cc_test(10,10,300,200, setColor(100,200,0), 0.5);
 
 	return;
 }
