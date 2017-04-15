@@ -47,9 +47,9 @@ extern "C" void cc_test(uint16_t xpos, uint16_t ypos, uint16_t sx, uint16_t sy, 
     int x = xpos;
     int y = ypos;
     
-    for (y; y <= ypos+sy; y++) {
-    for (x; x <= xpos+sx; x++) {
-        if (x <= xpos+sx) {
+    for (y = ypos; y <= ypos+sy; y++) {
+    for (x = xpos; x <= xpos+sx; x++) {
+        if (x >= xpos+sx) {
             x  = xpos;
             break;
         }
@@ -58,7 +58,7 @@ extern "C" void cc_test(uint16_t xpos, uint16_t ypos, uint16_t sx, uint16_t sy, 
         n    = blend(c,a,alpha);
         setpixel(x,y,n.cv);
     }   
-        if (y <= ypos+sx)
+        if (y >= ypos+sy)
         break;
     }
 }
